@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Tests ThingSpeak</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 40px; }
+    h1 { color: #333; }
+    .card { background: white; border-radius: 10px; padding: 20px;
+            margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .PASS, .NORMALE { color: green; font-weight: bold; }
+    .FAIL, .ANORMALE { color: red; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+    .stats { display: flex; gap: 20px; }
+    .stat { flex: 1; text-align: center; padding: 15px;
+            border-radius: 8px; background: #f8f9fa; }
+    .stat span { font-size: 2em; font-weight: bold; display: block; }
+  </style>
+</head>
+<body>
+  <h1>Dashboard : Tests unitaires ThingSpeak</h1>
+
+  <div class="card">
+    <h2>Données reçues</h2>
+    <p>Température : <strong id="temp">--</strong> °C</p>
+    <p>Humidité : <strong id="hum">--</strong> %</p>
+    <p>Dernière mesure : <strong id="heure">--</strong></p>
+  </div>
+
+  <div class="card">
+    <h2>État des tests</h2>
+    <table>
+      <thead><tr><th>Test</th><th>Résultat</th></tr></thead>
+      <tbody id="tests"></tbody>
+    </table>
+    <p id="variation" style="margin-top:10px; color:#666;"></p>
+  </div>
+
+  <div class="card">
+    <h2>Statistiques</h2>
+    <div class="stats">
+      <div class="stat"><span id="total">--</span>Total</div>
+      <div class="stat"><span id="reussis" style="color:green;">--</span>Réussis</div>
+      <div class="stat"><span id="echoues" style="color:red;">--</span>Échoués</div>
+      <div class="stat"><span id="taux">--</span>% réussite</div>
+    </div>
+  </div>
+
+  <script>
+    async function refresh() {
+      await fetch('/fetch');
+      const data = await (await fetch('/results')).json();
+
+      document.getElementById('temp').textContent  = data.temperature ?? '--';
+      document.getElementById('hum').textContent   = data.humidite ?? '--';
+      document.getElementById('heure').textContent = data.heure ?? '--';
+
+      const tbody = document.getElementById('tests');
+      tbody.innerHTML = '';
+      for (const [nom, res] of Object.entries(data.tests || {})) {
+        tbody.innerHTML += `<tr><td>${nom}</td><td class="${res}">${res}</td></tr>`;
+      }
+
+      if (data.variation && data.variation.actuelle !== null) {
+        document.getElementById('variation').textContent =
+          `Variation : ${data.variation.precedente} °C → ${data.variation.actuelle} °C`;
+      }
+
+      document.getElementById('total').textContent   = data.stats?.total ?? '--';
+      document.getElementById('reussis').textContent = data.stats?.reussis ?? '--';
+      document.getElementById('echoues').textContent = data.stats?.echoues ?? '--';
+      document.getElementById('taux').textContent    = data.stats?.taux ?? '--';
+    }
+
+    refresh();
+    setInterval(refresh, 30000);
+  </script>
+</body>
+</html>
