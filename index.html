@@ -72,6 +72,8 @@
       document.getElementById('echoues').textContent = data.stats?.echoues ?? '--';
       document.getElementById('taux').textContent    = data.stats?.taux ?? '--';
     }
+const CHANNEL_ID = '3496364';
+const READ_API_KEY = '33L404RTJFBL25HV';
 
     refresh();
     setInterval(refresh, 30000);
